@@ -9,11 +9,11 @@ public class Dealership {
     private ArrayList<Vehicle> inventory;
 
     //Constructor
-    public Dealership(String phone, String address, String name, ArrayList<Vehicle> inventory) {
+    public Dealership(String phone, String address, String name) {
         this.phone = phone;
         this.address = address;
         this.name = name;
-        this.inventory = inventory;
+        this.inventory = new ArrayList<>();
     }
     //Getters
 
