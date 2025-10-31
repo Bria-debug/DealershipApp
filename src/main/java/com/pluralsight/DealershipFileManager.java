@@ -1,46 +1,55 @@
 package com.pluralsight;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
 public class DealershipFileManager {
-    public Dealership getDealership() {
+
+    public static final String FILE_NAME = "src/main/resources/inventory.csv";
+
+    /**
+     * Example data, header and vehicle row
+     * Super Dupers Car Dealership|777 elm dr.|817-777-5555
+     * 10112|1993|Ford|Explorer|SUV|Red|525123|995.00
+     *
+     * @return new Dealership
+     */
+    public static Dealership getDealership() {
         Dealership dealership = null;
+        try {
+            BufferedReader bufReader = new BufferedReader(new FileReader(FILE_NAME));
+            String input;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("inventory.csv"))) {
-            // First line = dealership info
-            String dealershipInfo = reader.readLine();
-            String[] parts = dealershipInfo.split("\\|");
+            while((input = bufReader.readLine()) != null) {
+                String[] tokens = input.split("\\|"); //Input from CSV, the data, split by |
 
-            String name = parts[0];
-            String address = parts[1];
-            String phone = parts[2];
-
-           dealership = new Dealership(name, address, phone);
-
-            // Remaining lines = vehicles
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] v = line.split("\\|");
-                int vin = Integer.parseInt(v[0]);
-                int year = Integer.parseInt(v[1]);
-                String make = v[2];
-                String model = v[3];
-                String type = v[4];
-                String color = v[5];
-                int mileage = Integer.parseInt(v[6]);
-                double price = Double.parseDouble(v[7]);
-
-                Vehicle vehicle = new Vehicle(vin, year, make, model, type, color, mileage, price);
-                dealership.addVehicle(vehicle);
+                if (tokens.length > 3) { //Vehicle
+                    dealership.addVehicle(new Vehicle(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[1]), Integer.parseInt(tokens[6]), tokens[2], tokens[3], tokens[4], tokens[5], Double.parseDouble(tokens[7])));
+                } else { //Dealership Name and Number
+                    dealership = new Dealership(tokens[0], tokens[1], tokens[2]);
+                }
             }
 
+            bufReader.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); //Error chain
         }
-
         return dealership;
     }
-}
 
+    public static void saveDealership(Dealership dealership) {
+        try {
+            BufferedWriter bufWriter = new BufferedWriter(new FileWriter(FILE_NAME, false));
+            bufWriter.write(String.format("%s|%s|s", dealership.getName(), dealership.getAddress(), dealership.getPhone()));
+            bufWriter.newLine();
+
+            for (Vehicle v: dealership.getAllVehicles()) {
+                bufWriter.write(String.format("%d|%d|%s|%s|%s|%s|%d|%.2f", v.getVin(), v.getYear(), v.getMake(), v.getModel(), v.getVehicleType(), v.getColor(), v.getOdometer(), v.getPrice()));
+                bufWriter.newLine();
+            }
+
+            bufWriter.close(); //Saves file
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
