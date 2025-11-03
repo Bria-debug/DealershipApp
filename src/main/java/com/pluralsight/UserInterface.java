@@ -4,26 +4,63 @@ import java.util.List;
 import java.util.Scanner;
 
 public class UserInterface {
+    // The dealership we are interacting with
     private Dealership dealership;
+
+    // Scanner is used to read user keyboard input
     private Scanner scanner = new Scanner(System.in);
 
-    public UserInterface() {
-    }
+    public UserInterface() {}
 
+    // Loads dealership data from file when the program starts
     private void init() {
         dealership = DealershipFileManager.getDealership();
     }
+public void processSellOrLeaseRequest(){
+    System.out.println("Enter the VIN of vehicle:");
+    int vin = scanner.nextInt();
+    scanner.nextLine();
+    Vehicle vehicle = dealership.getVehicleByVin(vin);
 
+    if(vehicle == null){
+        System.out.println("No vehicle found with that VIN");
+        return;
+    }
+    System.out.println("Customer Name:");
+    String name = scanner.nextLine();
+
+    System.out.println("Customer Email:");
+    String email = scanner.nextLine();
+
+    System.out.println("Is this a Sale or Lease? (S/L):");
+    String choice = scanner.nextLine().trim().toUpperCase();
+    }
+    Contract contract;
+    if(choice.equals("L"))
+
+    {
+        if (vehicle.getYear() < 2022) {
+            System.out.println("This vehicle is too old to lease.");
+            return;
+        }
+        contract = new LeaseContract("today", name, email, vehicle);
+    }else {
+        contract = new SaleContract("today", name, email, vehicle);
+
+    }
+
+    // Shows the menu and keeps the program running until user quits
     public void display() {
         init();
-//
+
         do {
             homeMenuScreen();
 
-            System.out.print("Type in an number: ");
+            System.out.print("Type in a number: ");
             int option = scanner.nextInt();
-            scanner.nextLine();
+            scanner.nextLine(); // clears newline so next input reads correctly
 
+            // Switch statement chooses which feature to run based on user choice
             switch (option) {
                 case 1 -> processGetByPriceRequest();
                 case 2 -> processGetByMakeModelRequest();
@@ -34,35 +71,39 @@ public class UserInterface {
                 case 7 -> processGetAllVehiclesRequest();
                 case 8 -> processAddVehicleRequest();
                 case 9 -> processRemoveVehicleRequest();
-                case 99 -> System.exit(0);
-                default -> {
-                    System.out.println("Invalid option entered, please try again...");
-                }
+                case 10 -> processSellOrLeaseRequest();
+                case 99 -> System.exit(0); // ends the program
+                default -> System.out.println("Invalid option, please try again.");
             }
-        } while(true);
+        } while (true);
     }
 
+    // Prints the menu options to the user
     private void homeMenuScreen() {
         System.out.println("""
-                    1 - Find vehicles within a price range
-                    2 - Find vehicles by make / model
-                    3 - Find vehicles by year range
-                    4 - Find vehicles by color
-                    5 - Find vehicles by mileage range
-                    6 - Find vehicles by type (car, truck, SUV, van)
-                    7 - List ALL vehicles
-                    8 - Add a vehicle
-                    9 - Remove a vehicle
-                    99 - Quit
-                    """);
+                1 - Find vehicles within a price range
+                2 - Find vehicles by make / model
+                3 - Find vehicles by year range
+                4 - Find vehicles by color
+                5 - Find vehicles by mileage range
+                6 - Find vehicles by type (car, truck, SUV, van)
+                7 - List ALL vehicles
+                8 - Add a vehicle
+                9 - Remove a vehicle
+                10- Sell/ Lease a vehicle
+                99 - Quit
+                """);
     }
 
+    // Loops through and prints each vehicle in a list
     private void displayVehicles(List<Vehicle> vehicles) {
-        for (Vehicle v: vehicles) {
+        for (Vehicle v : vehicles) {
             System.out.println(v);
         }
         System.out.println();
     }
+
+    // Each of the methods below handles one menu option...
 
     public void processGetByPriceRequest() {
         System.out.print("Please enter the max price: ");
@@ -101,7 +142,6 @@ public class UserInterface {
     public void processGetByColorRequest() {
         System.out.print("Please enter the color: ");
         String color = scanner.nextLine();
-
         displayVehicles(dealership.getVehiclesByColor(color));
     }
 
@@ -120,7 +160,6 @@ public class UserInterface {
     public void processGetByVehicleTypeRequest() {
         System.out.print("Please enter the type: ");
         String type = scanner.nextLine();
-
         displayVehicles(dealership.getVehiclesByType(type));
     }
 
@@ -148,7 +187,7 @@ public class UserInterface {
         String model = scanner.nextLine();
 
         System.out.print("Please enter the type: ");
-        String vehicleType = scanner.nextLine();
+        String type = scanner.nextLine();
 
         System.out.print("Please enter the color: ");
         String color = scanner.nextLine();
@@ -157,8 +196,9 @@ public class UserInterface {
         double price = scanner.nextDouble();
         scanner.nextLine();
 
-        dealership.addVehicle(new Vehicle(vin, year, odometer, make, model, vehicleType, color, price));
-        DealershipFileManager.saveDealership(dealership);
+        // Create vehicle object and add it to dealership
+        dealership.addVehicle(new Vehicle(vin, year, odometer, make, model, type, color, price));
+        DealershipFileManager.saveDealership(dealership); // Save back to file
     }
 
     public void processRemoveVehicleRequest() {
